@@ -1,6 +1,9 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const app = express();
+
+app.use(express.json()); //convert json data to js object
+
 const PORT = 3000;
 
 //db connections....
