@@ -18,6 +18,10 @@ const userSchema = new Schema({
     type: Boolean,
     default: true,
   },
+  role:{
+    type:Schema.Types.ObjectId,
+    ref:"Role"
+  }
 });
 
 // mongoose.model("User", userSchema); //users

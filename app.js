@@ -20,10 +20,12 @@ mongoose.connect("mongodb://127.0.0.1/mernstack_23").then(()=>{
 
 //import all routes
 const userRoutes = require("./src/routes/UserRoutes")
+const roleRoutes = require("./src/routes/RoleRoutes")
 
 //localhost:3000/user/user
 //use all routes
 app.use("/user", userRoutes)
+app.use("/role", roleRoutes)
 
 
 app.listen(PORT, () => {

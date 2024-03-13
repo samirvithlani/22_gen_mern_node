@@ -26,7 +26,7 @@ const getUsersFromDB = async (req, res) => {
   if(flag === undefined){
     flag = true;
   }
-  const users = await userSchema.find({status:flag});
+  const users = await userSchema.find({status:flag}).populate("role")
 
   res.status(200).json({
     data: users,
@@ -43,6 +43,7 @@ const addUser = async (req, res) => {
     age: req.body.age,
     email: req.body.email.trim().toLowerCase(),
     password: req.body.password,
+    role: req.body.role
   };
 
   //const savedUser = await userSchema.create(req.body);
