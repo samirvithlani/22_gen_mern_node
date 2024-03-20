@@ -31,6 +31,24 @@ const addColorToProduct = async (req, res) => {
   }
 };
 
+const removeColorFromProduct = async (req, res) => {
+  const productId = req.params.id;
+  const Color = req.body.color;
+
+  try {
+    const updateProduct = await productSchema.findByIdAndUpdate(productId, {
+      $pull: {
+        availableColors: Color,
+      },
+    });
+    res.status(200).json({
+      message: "Color removed from product successfully",
+    });
+  } catch (err) {
+    res.status(500).json({ error: err });
+  }
+};
+
 const getAllProducts = async (req, res) => {
   try {
     const products = await productSchema.find();
@@ -63,5 +81,6 @@ module.exports = {
   createProduct,
   addColorToProduct,
   getAllProducts,
-    getProductyByColorName,
+  getProductyByColorName,
+  removeColorFromProduct
 };
