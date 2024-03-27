@@ -1,4 +1,5 @@
 const userSchema = require("../models/UserModel");
+const multer = require("multer");
 
 const getAllUsers = (req, res) => {
   //db users...
@@ -22,11 +23,11 @@ const getAllUsers = (req, res) => {
 const getUsersFromDB = async (req, res) => {
   //const flag = req.params.flag;
   var flag = req.query.flag;
-  console.log("flag...",flag);
-  if(flag === undefined){
+  console.log("flag...", flag);
+  if (flag === undefined) {
     flag = true;
   }
-  const users = await userSchema.find({status:flag}).populate("role")
+  const users = await userSchema.find({ status: flag }).populate("role");
 
   res.status(200).json({
     data: users,
@@ -43,7 +44,7 @@ const addUser = async (req, res) => {
     age: req.body.age,
     email: req.body.email.trim().toLowerCase(),
     password: req.body.password,
-    role: req.body.role
+    role: req.body.role,
   };
 
   //const savedUser = await userSchema.create(req.body);
@@ -102,22 +103,69 @@ const updateUserById = async (req, res) => {
 };
 
 const softDeleteById = async (req, res) => {
-
   const id = req.params.id;
-  const updatedUser = await userSchema.findByIdAndUpdate(id, {status:false});
-  if(updatedUser){
+  const updatedUser = await userSchema.findByIdAndUpdate(id, { status: false });
+  if (updatedUser) {
     res.status(200).json({
       message: "User deleted successfully",
     });
-  }else{
+  } else {
     res.status(404).json({
       message: "User not found",
     });
   }
+};
 
-}
+//store
 
+const storage = multer.diskStorage({
+  destination: "./uploads/",
+  filename: function (req, file, cb) {
+    cb(null, file.originalname);
+  },
+});
 
+const upload = multer({
+  storage: storage,
+  fileFilter: function (req, file, cb) {
+    if (file.mimetype === "image/jpeg" || file.mimetype === "image/png") {
+      cb(null, true);
+    } else {
+      cb(null, false);
+    }
+  },
+}).single("myFile");
+
+const uploadFile = async (req, res) => {
+  try {
+    upload(req, res, (err) => {
+      if (err) {
+        res.status(500).json({
+          message: "File upload failed",
+        });
+      } else {
+        if (req.file !== undefined) {
+          res.status(200).json({
+            message: "File uploaded successfully",
+            fileData: req.file.originalname,
+            // fileData:req.file.originalname + "-" + Date.now() +
+            // req.file.originalname.slice(req.file.originalname.lastIndexOf("."))
+          });
+        } else {
+          res.status(500).json({
+            message: "File upload failed",
+            error:"file must be in jpeg or png format"
+          });
+        }
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: "File upload failed",
+      error: err.message,
+    });
+  }
+};
 
 module.exports = {
   getAllUsers,
@@ -126,5 +174,6 @@ module.exports = {
   getuserById,
   deleteUserById,
   updateUserById,
-  softDeleteById
+  softDeleteById,
+  uploadFile,
 };
