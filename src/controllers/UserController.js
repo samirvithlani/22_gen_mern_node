@@ -1,5 +1,6 @@
 const userSchema = require("../models/UserModel");
 const multer = require("multer");
+const cloundinaryController = require("./CloundanryUpload");
 
 const getAllUsers = (req, res) => {
   //db users...
@@ -119,7 +120,7 @@ const softDeleteById = async (req, res) => {
 //store
 
 const storage = multer.diskStorage({
-  destination: "./uploads/",
+  //destination: "./uploads/",
   filename: function (req, file, cb) {
     cb(null, file.originalname);
   },
@@ -138,16 +139,21 @@ const upload = multer({
 
 const uploadFile = async (req, res) => {
   try {
-    upload(req, res, (err) => {
+    upload(req, res, async(err) => {
       if (err) {
         res.status(500).json({
           message: "File upload failed",
         });
       } else {
         if (req.file !== undefined) {
+
+          const result = await cloundinaryController.uploadImage(req.file);
+
+
           res.status(200).json({
             message: "File uploaded successfully",
             fileData: req.file.originalname,
+            cloudinaryData: result
             // fileData:req.file.originalname + "-" + Date.now() +
             // req.file.originalname.slice(req.file.originalname.lastIndexOf("."))
           });
