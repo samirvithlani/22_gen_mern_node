@@ -1,6 +1,7 @@
 const userSchema = require("../models/UserModel");
 const multer = require("multer");
 const cloundinaryController = require("./CloundanryUpload");
+const tokenUtil  = require("../util/TokenUtil");
 
 const getAllUsers = (req, res) => {
   //db users...
@@ -173,6 +174,34 @@ const uploadFile = async (req, res) => {
   }
 };
 
+
+const loginUser = async (req, res) => {
+
+  const email  = req.body.email;
+  const password = req.body.password;
+
+  const user = await userSchema.findOne({email:email,password:password});
+  
+  if(user){
+
+    const token = tokenUtil.generateToken(user.toObject());
+
+    res.status(200).json({
+      message:"Login success",
+      token:token
+    })
+  }
+  else{
+    res.status(404).json({
+      message:"Login failed"
+    })
+  }
+
+}
+
+
+
+
 module.exports = {
   getAllUsers,
   getUsersFromDB,
@@ -182,4 +211,6 @@ module.exports = {
   updateUserById,
   softDeleteById,
   uploadFile,
+  loginUser
 };
+
