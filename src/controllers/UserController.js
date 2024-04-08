@@ -2,6 +2,8 @@ const userSchema = require("../models/UserModel");
 const multer = require("multer");
 const cloundinaryController = require("./CloundanryUpload");
 const tokenUtil  = require("../util/TokenUtil");
+const encrypt = require("../util/Encrypt");
+const mailUtil = require("../util/MailUtil");
 
 const getAllUsers = (req, res) => {
   //db users...
@@ -41,16 +43,20 @@ const addUser = async (req, res) => {
   // console.log("user data...",req.body)
   // res.json("ok")
 
+
+  const hashedPassword = await encrypt.hashPassword(req.body.password);
+
   const objectToSubmit = {
     name: req.body.name.toLowerCase(),
     age: req.body.age,
     email: req.body.email.trim().toLowerCase(),
-    password: req.body.password,
+    password: hashedPassword,
     role: req.body.role,
   };
 
   //const savedUser = await userSchema.create(req.body);
   const savedUser = await userSchema.create(objectToSubmit);
+  await mailUtil.sendingMail(savedUser.email,"Welcome","Welcome to our platform")
   //201 CREATED
   //200 OK
   res.status(201).json({
@@ -175,31 +181,69 @@ const uploadFile = async (req, res) => {
 };
 
 
+// const loginUser = async (req, res) => {
+
+//   const email  = req.body.email;
+//   const password = req.body.password;
+
+//   const user = await userSchema.findOne({email:email,password:password});
+  
+//   if(user){
+
+//     const token = tokenUtil.generateToken(user.toObject());
+
+//     res.status(200).json({
+//       message:"Login success",
+//       token:token
+//     })
+//   }
+//   else{
+//     res.status(404).json({
+//       message:"Login failed"
+//     })
+//   }
+
+// }
+
+
+
 const loginUser = async (req, res) => {
 
-  const email  = req.body.email;
+
+  const email = req.body.email;
   const password = req.body.password;
 
-  const user = await userSchema.findOne({email:email,password:password});
-  
-  if(user){
+  //mira@gmail.com
+  const userFromEmail = await userSchema.findOne({ email: email });
+  console.log("userFromEmail...", userFromEmail);
+  if(userFromEmail){
 
-    const token = tokenUtil.generateToken(user.toObject());
+    const isMatch  = await encrypt.comparePassword(password,userFromEmail.password);
+    if(isMatch){
+      const token = tokenUtil.generateToken(userFromEmail.toObject());
+      res.status(200).json({
+        message: "Login success",
+        token: token
+      })
+    }
+    else{
+      res.status(404).json({
+        message: "Login failed invalid password..",
+      })
+    }
 
-    res.status(200).json({
-      message:"Login success",
-      token:token
-    })
+
+
   }
   else{
     res.status(404).json({
-      message:"Login failed"
+      message: "User Not found..",
     })
   }
 
+
+
 }
-
-
 
 
 module.exports = {
